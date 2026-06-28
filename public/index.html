@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Складской Поиск</title>
+  
+  <!-- Подключение Google Fonts для премиального вида -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Стили -->
+  <link rel="stylesheet" href="index.css">
+
+  <!-- PWA Поддержка -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0b0f19">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log('Service Worker зарегистрирован', reg);
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  window.location.reload();
+                }
+              };
+            };
+          })
+          .catch(err => console.error('Ошибка Service Worker', err));
+      });
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+    }
+  </script>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- Заголовок приложения -->
+    <header class="app-header">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <h1 class="app-title" id="appHeaderTitle">Складской Поиск</h1>
+        <span id="demoBadge" class="demo-badge" style="display: none;">ДЕМО</span>
+      </div>
+      <div class="welcome-user" id="welcomeUser" style="display: none;"></div>
+    </header>
+
+    <!-- Лоадер/Ожидание -->
+    <div class="loader-overlay" id="loaderOverlay" style="display: none;">
+      <div class="spinner"></div>
+      <div id="loaderText" style="font-weight: 600;">Загрузка данных...</div>
+    </div>
+
+    <!-- Всплывающее предупреждение -->
+    <div class="alert-toast" id="alertToast">Ошибка штрихкода!</div>
+
+    <!-- ЭКРАН 1: НАСТРОЙКИ (Ввод URL скрипта) -->
+    <main class="screen active" id="screen-settings">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Настройка подключения</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Введите URL-адрес развернутого веб-приложения Google Apps Script</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="scriptUrlInput">URL Google Apps Script</label>
+        <input class="input-field" type="url" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+
+      <button class="btn" id="btnSaveSettings" style="margin-top: auto;">
+        Подключиться и продолжить
+      </button>
+      <button class="btn btn-secondary" id="btnDemoMode" style="margin-top: 12px;">
+        Войти в демо-режим
+      </button>
+      <button class="btn btn-secondary" id="btnClearCache" style="margin-top: 12px; background: rgba(244, 63, 94, 0.15); border-color: rgba(244, 63, 94, 0.3); color: var(--danger-color);">
+        Сбросить кэш приложения
+      </button>
+    </main>
+
+    <!-- ЭКРАН 2: ВХОД (Ввод ID сотрудника) -->
+    <main class="screen" id="screen-login">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h2 style="font-size: 1.5rem; margin-bottom: 8px;">Авторизация</h2>
+        <p style="color: var(--text-muted); font-size: 0.9rem;">Введите ваш персональный ID для входа в систему</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="employeeIdInput">ID Сотрудника</label>
+        <input class="input-field" type="text" id="employeeIdInput" placeholder="Например: 12345" pattern="[0-9]*" inputmode="numeric">
+      </div>
+
+      <button class="btn" id="btnLogin" style="margin-top: 10px;">
+        Войти в систему
+      </button>
+      
+      <button class="btn btn-secondary" id="btnBackToSettings" style="margin-top: 12px;">
+        Изменить адрес API
+      </button>
+    </main>
+
+    <!-- ЭКРАН 3: ВЫБОР СКЛАДА И ЭТАЖА -->
+    <main class="screen" id="screen-select">
+      <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+        <h2 style="font-size: 1.35rem; margin: 0;">Выберите зону работы</h2>
+        <button id="btnRefreshTasks" class="btn-icon" style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--panel-border); color: var(--text-main); cursor: pointer; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 12px; transition: all 0.2s;" title="Обновить список задач">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Склад</label>
+        <div class="segmented-control" id="warehouseSelect">
+          <button class="segment-btn active" data-value="Фулфилмент">Фулфилмент</button>
+          <button class="segment-btn" data-value="Сергели">Сергели</button>
+          <button class="segment-btn" data-value="Назначено мне">Назначено мне</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="flex-grow: 1;">
+        <label class="form-label">Доступные этажи</label>
+        <div class="grid-select" id="floorSelectGrid">
+          <!-- Генерируется динамически -->
+        </div>
+        <div id="noTasksMessage" class="empty-state" style="display: none; padding: 20px 0;">
+          <div class="empty-icon">✓</div>
+          <div>Нет доступных задач для поиска на выбранном складе!</div>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; margin-top: auto;">
+        <button class="btn" id="btnStartSearch" disabled>
+          Начать поиск
+        </button>
+        <button class="btn btn-secondary" id="btnLogout">
+          Сменить пользователя
+        </button>
+      </div>
+    </main>
+
+    <!-- ЭКРАН 4: ПОИСК ТОВАРА (ЗАДАЧА) -->
+    <main class="screen" id="screen-task">
+      <!-- Прогресс -->
+      <div style="width: 100%; margin-bottom: 16px;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+          <span id="taskProgressLabel">Товар 0 из 0</span>
+          <span id="taskPercentLabel">0%</span>
+        </div>
+        <div class="progress-container">
+          <div class="progress-bar" id="taskProgressBar"></div>
+        </div>
+      </div>
+
+      <!-- Карточка задачи -->
+      <div class="task-card">
+        <div class="task-cell-label">Ячейка для поиска</div>
+        <div class="task-cell" id="taskCell">M1.83.52.5.1</div>
+
+        <div class="task-details">
+          <div class="task-info-block" style="grid-column: span 2;">
+            <div class="info-title">Штрихкод (Шк)</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; gap: 8px;">
+              <div class="info-value" id="taskBarcode" style="font-family: monospace; font-size: 1.25rem; letter-spacing: 0.5px; cursor: pointer; margin: 0;" title="Нажмите для копирования">1000014251886</div>
+              <button id="btnWmsInfo" class="wms-badge-btn">
+                WMS Информация ↗
+              </button>
+            </div>
+          </div>
+          
+          <div class="task-info-block">
+            <div class="info-title">Надо найти</div>
+            <div class="info-value" id="taskTargetQty">1 шт.</div>
+          </div>
+          
+          <div class="task-info-block">
+            <div class="info-title">Ячеек в Шк</div>
+            <div class="info-value" id="taskCellsCount">1</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Блок ввода найденного количества -->
+      <div style="display: flex; flex-direction: column; align-items: center; margin-bottom: 20px;">
+        <div class="form-label" style="margin-bottom: 8px;">Найденное количество</div>
+        <div class="quantity-control">
+          <button class="qty-btn" id="btnQtyMinus">−</button>
+          <span class="qty-value" id="qtyVal">1</span>
+          <button class="qty-btn" id="btnQtyPlus">+</button>
+        </div>
+      </div>
+
+      <!-- Действия -->
+      <div class="actions-grid">
+        <button class="btn btn-danger" id="btnNotFound">
+          Не найден
+        </button>
+        <button class="btn btn-success" id="btnFound">
+          Найдено
+        </button>
+        <button class="btn btn-secondary" id="btnSkipTask" style="grid-column: span 2; margin-top: 8px; padding: 12px;">
+          Пропустить товар
+        </button>
+        <button class="btn btn-secondary" id="btnExitTask" style="grid-column: span 2; margin-top: 4px; padding: 12px; background: transparent; border: none;">
+          Закончить и выйти
+        </button>
+      </div>
+    </main>
+
+    <!-- ЭКРАН 5: ВСЁ ГОТОВО -->
+    <main class="screen" id="screen-done">
+      <div class="empty-state" style="flex-grow: 1; padding: 40px 0;">
+        <div class="empty-icon" style="font-size: 5rem; text-shadow: 0 0 20px var(--success-glow);">🎉</div>
+        <h2 style="font-size: 1.75rem; font-weight: 800; margin-top: 10px;">Отличная работа!</h2>
+        <p style="color: var(--text-muted); font-size: 1rem; max-width: 280px; line-height: 1.5; margin-bottom: 20px;">
+          Все товары на выбранном этаже успешно проверены. Маршрут завершен!
+        </p>
+        <button class="btn" id="btnBackToSelect" style="width: 100%;">
+          Выбрать другую зону
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ПОДТВЕРЖДЕНИЯ -->
+  <div class="modal-overlay" id="confirmModal" style="display: none;">
+    <div class="modal-card">
+      <h3 class="modal-title">Подтверждение</h3>
+      <p class="modal-text" id="confirmModalText">Вы действительно хотите подтвердить результат?</p>
+      <div class="modal-actions">
+        <button class="btn btn-secondary" id="btnConfirmCancel" style="padding: 10px 0; font-size: 0.95rem; margin: 0;">Отмена</button>
+        <button class="btn btn-success" id="btnConfirmYes" style="padding: 10px 0; font-size: 0.95rem; margin: 0;">Да, подтверждаю</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Логика работы приложения -->
+  <script src="app.js"></script>
+</body>
+</html>
