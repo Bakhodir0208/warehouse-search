@@ -642,4 +642,15 @@ body {
   transform: scale(0.95) !important;
 }
 
+/* Строка штрихкода с поддержкой переноса (адаптивная) */
+.barcode-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 6px;
+  width: 100%;
+}
+
 
