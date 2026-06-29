@@ -553,6 +553,7 @@ async function fetchTasks() {
     if (res.success) {
       state.tasks = res.tasks || [];
       state.locks = res.locks || [];
+      updateWarehouseTabLabels();
       populateFloors();
     } else {
       showToast(res.error || 'Ошибка загрузки задач');
@@ -829,4 +830,21 @@ function hideConfirmModal() {
   if (modal) {
     modal.style.display = 'none';
   }
+}
+
+// Обновление счетчиков на вкладках складов
+function updateWarehouseTabLabels() {
+  const fulfillmentCount = state.tasks.filter(t => t.warehouse === 'Фулфилмент' && !t.assignedTo).length;
+  const sergeliCount = state.tasks.filter(t => t.warehouse === 'Сергели' && !t.assignedTo).length;
+  
+  // Для персональных задач ("На мне") фильтруем по совпадению с FIO сотрудника
+  const personalCount = state.tasks.filter(t => t.assignedTo && t.assignedTo.trim().toLowerCase() === state.employeeFio.trim().toLowerCase()).length;
+
+  const tabFulfillment = document.getElementById('tabFulfillment');
+  const tabSergeli = document.getElementById('tabSergeli');
+  const tabPersonal = document.getElementById('tabPersonal');
+
+  if (tabFulfillment) tabFulfillment.textContent = `Фулфилмент (${fulfillmentCount})`;
+  if (tabSergeli) tabSergeli.textContent = `Сергели (${sergeliCount})`;
+  if (tabPersonal) tabPersonal.textContent = `На мне (${personalCount})`;
 }

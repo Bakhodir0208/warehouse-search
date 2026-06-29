@@ -1,4 +1,4 @@
-const CACHE_NAME = 'warehouse-search-v7';
+const CACHE_NAME = 'warehouse-search-v9';
 const ASSETS = [
   './',
   './index.html',

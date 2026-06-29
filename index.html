@@ -128,9 +128,9 @@
       <div class="form-group">
         <label class="form-label">Склад</label>
         <div class="segmented-control" id="warehouseSelect">
-          <button class="segment-btn active" data-value="Фулфилмент">Фулфилмент</button>
-          <button class="segment-btn" data-value="Сергели">Сергели</button>
-          <button class="segment-btn" data-value="Назначено мне">Назначено мне</button>
+          <button class="segment-btn active" data-value="Фулфилмент" id="tabFulfillment">Фулфилмент (0)</button>
+          <button class="segment-btn" data-value="Сергели" id="tabSergeli">Сергели (0)</button>
+          <button class="segment-btn" data-value="Назначено мне" id="tabPersonal">На мне (0)</button>
         </div>
       </div>
 
@@ -177,9 +177,9 @@
           <div class="task-info-block" style="grid-column: span 2;">
             <div class="info-title">Штрихкод (Шк)</div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; gap: 8px;">
-              <div class="info-value" id="taskBarcode" style="font-family: monospace; font-size: 1.25rem; letter-spacing: 0.5px; cursor: pointer; margin: 0;" title="Нажмите для копирования">1000014251886</div>
+              <div class="info-value" id="taskBarcode" style="font-family: monospace; font-size: 1.15rem; letter-spacing: 0.5px; cursor: pointer; margin: 0;" title="Нажмите для копирования">1000014251886</div>
               <button id="btnWmsInfo" class="wms-badge-btn">
-                WMS Информация ↗
+                WMS Инфо ↗
               </button>
             </div>
           </div>
