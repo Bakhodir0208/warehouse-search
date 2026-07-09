@@ -642,4 +642,111 @@ body {
   transform: scale(0.95) !important;
 }
 
+/* Строка штрихкода с поддержкой переноса (адаптивная) */
+.barcode-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  margin-top: 6px;
+  width: 100%;
+}
+
+/* Блок с фото и описанием товара */
+.product-info-block {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 12px;
+  width: 100%;
+  text-decoration: none;
+  color: inherit;
+  margin-bottom: 20px;
+  text-align: left;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-sizing: border-box;
+}
+
+.product-info-block:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2), 0 0 8px rgba(99, 102, 241, 0.2);
+  transform: translateY(-2px);
+}
+
+.product-info-block:active {
+  transform: translateY(0);
+}
+
+.product-img-container {
+  width: 64px;
+  height: 64px;
+  min-width: 64px;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 12px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.product-img-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.product-img-container img.loaded {
+  display: block;
+}
+
+.product-img-placeholder {
+  font-size: 1.5rem;
+  opacity: 0.5;
+  display: block;
+}
+
+.product-img-container img.loaded + .product-img-placeholder {
+  display: none;
+}
+
+.product-desc-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.product-title {
+  font-size: 0.9rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--text-main);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.product-link-badge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--accent-color);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 2px;
+}
+
 
