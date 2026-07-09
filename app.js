@@ -78,7 +78,10 @@ const ui = {
     btnFound: document.getElementById('btnFound'),
     btnSkip: document.getElementById('btnSkipTask'),
     btnExit: document.getElementById('btnExitTask'),
-    btnWmsInfo: document.getElementById('btnWmsInfo')
+    btnWmsInfo: document.getElementById('btnWmsInfo'),
+    productLink: document.getElementById('productLink'),
+    productImage: document.getElementById('productImage'),
+    productTitle: document.getElementById('productTitle')
   }
 };
 
@@ -183,14 +186,14 @@ async function apiGet(params = {}) {
       return {
         success: true,
         tasks: [
-          { rowIndex: 2, barcode: '1000014251886', warehouse: 'Фулфилмент', cell: 'M1.83.52.5.1', targetQty: 2, ticketLink: 'https://jsm.uzum.com/browse/WH-101', totalCellsCount: 3, assignedTo: '' },
-          { rowIndex: 2, barcode: '1000014251886', warehouse: 'Фулфилмент', cell: 'M1.83.52.5.2', targetQty: 1, ticketLink: 'https://jsm.uzum.com/browse/WH-101', totalCellsCount: 3, assignedTo: '' },
-          { rowIndex: 3, barcode: '2000031846129', warehouse: 'Фулфилмент', cell: 'M1.84.12.3.1', targetQty: 5, ticketLink: '', totalCellsCount: 1, assignedTo: '' },
-          { rowIndex: 4, barcode: '3000094827163', warehouse: 'Сергели', cell: 'S2.10.15.1.1', targetQty: 1, ticketLink: 'https://jsm.uzum.com/browse/WH-102', totalCellsCount: 2, assignedTo: '' },
-          { rowIndex: 4, barcode: '3000094827163', warehouse: 'Сергели', cell: 'S2.10.15.1.2', targetQty: 3, ticketLink: 'https://jsm.uzum.com/browse/WH-102', totalCellsCount: 2, assignedTo: '' },
-          { rowIndex: 5, barcode: '4000012345678', warehouse: 'Фулфилмент', cell: 'M2.10.20.1.1', targetQty: 1, ticketLink: '', totalCellsCount: 1, assignedTo: '' },
-          { rowIndex: 6, barcode: '5000012345678', warehouse: 'Фулфилмент', cell: 'M3.10.20.1.1', targetQty: 2, ticketLink: 'https://jsm.uzum.com/browse/WH-103', totalCellsCount: 1, assignedTo: 'Иванов Иван Иванович' },
-          { rowIndex: 7, barcode: '6000012345678', warehouse: 'Фулфилмент', cell: 'M3.10.20.1.2', targetQty: 1, ticketLink: '', totalCellsCount: 1, assignedTo: 'Петров Петр Петрович' }
+          { rowIndex: 2, barcode: '1000014251886', warehouse: 'Фулфилмент', cell: 'M1.83.52.5.1', targetQty: 2, ticketLink: 'https://jsm.uzum.com/browse/WH-101', totalCellsCount: 3, assignedTo: '', productId: '364004' },
+          { rowIndex: 2, barcode: '1000014251886', warehouse: 'Фулфилмент', cell: 'M1.83.52.5.2', targetQty: 1, ticketLink: 'https://jsm.uzum.com/browse/WH-101', totalCellsCount: 3, assignedTo: '', productId: '364004' },
+          { rowIndex: 3, barcode: '2000031846129', warehouse: 'Фулфилмент', cell: 'M1.84.12.3.1', targetQty: 5, ticketLink: '', totalCellsCount: 1, assignedTo: '', productId: '435478' },
+          { rowIndex: 4, barcode: '3000094827163', warehouse: 'Сергели', cell: 'S2.10.15.1.1', targetQty: 1, ticketLink: 'https://jsm.uzum.com/browse/WH-102', totalCellsCount: 2, assignedTo: '', productId: '472922' },
+          { rowIndex: 4, barcode: '3000094827163', warehouse: 'Сергели', cell: 'S2.10.15.1.2', targetQty: 3, ticketLink: 'https://jsm.uzum.com/browse/WH-102', totalCellsCount: 2, assignedTo: '', productId: '472922' },
+          { rowIndex: 5, barcode: '4000012345678', warehouse: 'Фулфилмент', cell: 'M2.10.20.1.1', targetQty: 1, ticketLink: '', totalCellsCount: 1, assignedTo: '', productId: '832407' },
+          { rowIndex: 6, barcode: '5000012345678', warehouse: 'Фулфилмент', cell: 'M3.10.20.1.1', targetQty: 2, ticketLink: 'https://jsm.uzum.com/browse/WH-103', totalCellsCount: 1, assignedTo: 'Иванов Иван Иванович', productId: '364004' },
+          { rowIndex: 7, barcode: '6000012345678', warehouse: 'Фулфилмент', cell: 'M3.10.20.1.2', targetQty: 1, ticketLink: '', totalCellsCount: 1, assignedTo: 'Петров Петр Петрович', productId: '435478' }
         ],
         locks: [
           { warehouse: 'Фулфилмент', floor: 'M2', employee: 'Иванов Иван Иванович' },
@@ -728,6 +731,18 @@ function renderCurrentTask() {
   ui.task.targetQty.textContent = `${task.targetQty} шт.`;
   ui.task.cellsCount.textContent = task.totalCellsCount;
   
+  // Отображение информации о товаре
+  if (ui.task.productLink) {
+    if (task.productId) {
+      ui.task.productLink.href = `https://uzum.uz/ru/product/${task.productId}`;
+      ui.task.productLink.style.display = 'flex';
+      loadProductInfo(task.productId);
+    } else {
+      ui.task.productLink.style.display = 'none';
+      ui.task.productLink.href = '#';
+    }
+  }
+  
   // Ссылка на заявку
   if (ui.task.ticketLink && ui.task.ticketContainer) {
     if (task.ticketLink) {
@@ -740,6 +755,107 @@ function renderCurrentTask() {
   
   // Счетчик количества
   ui.task.qtyVal.textContent = task.targetQty;
+}
+
+// Загрузка информации о товаре в UI
+async function loadProductInfo(productId) {
+  if (ui.task.productImage) {
+    ui.task.productImage.src = '';
+    ui.task.productImage.classList.remove('loaded');
+  }
+  if (ui.task.productTitle) {
+    ui.task.productTitle.textContent = 'Загрузка информации о товаре...';
+  }
+  
+  try {
+    const info = await fetchProductInfo(productId);
+    if (info) {
+      if (ui.task.productTitle) {
+        ui.task.productTitle.textContent = info.title || `Товар ID ${productId}`;
+      }
+      if (info.image && ui.task.productImage) {
+        ui.task.productImage.src = info.image;
+        ui.task.productImage.onload = () => {
+          ui.task.productImage.classList.add('loaded');
+        };
+      }
+    }
+  } catch (err) {
+    console.error('Error loading product info into UI:', err);
+    if (ui.task.productTitle) {
+      ui.task.productTitle.textContent = `Товар ID ${productId} (нажмите, чтобы открыть)`;
+    }
+  }
+}
+
+// Получение информации о товаре (фото и описание) с поддержкой Демо-режима, прямого запроса и Apps Script прокси
+async function fetchProductInfo(productId) {
+  if (state.isDemoMode) {
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const mockProducts = {
+      '364004': {
+        title: 'Женские туфли на высоком каблуке COMFORT SHOES',
+        image: 'https://images.uzum.uz/d1vl10r4eu2vdgd75pig/t_product_240_low.jpg'
+      },
+      '435478': {
+        title: 'Женские легкие дышащие кроссовки белого цвета',
+        image: 'https://images.uzum.uz/d29qu57iub3csu9vcr6g/t_product_240_low.jpg'
+      },
+      '472922': {
+        title: 'Чехол силиконовый прозрачный для смартфона',
+        image: 'https://images.uzum.uz/d29rgr34eu2ok713e2ig/t_product_240_low.jpg'
+      },
+      '832407': {
+        title: 'Женские замшевые туфли с бантом',
+        image: 'https://images.uzum.uz/d1vl0rt2llnbjcofb7ng/t_product_240_low.jpg'
+      }
+    };
+    return mockProducts[productId] || {
+      title: `Товар ID ${productId}`,
+      image: null
+    };
+  }
+
+  // 1. Попытка прямого запроса к API Uzum
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3с таймаут
+    const res = await fetch(`https://api.uzum.uz/api/v2/product/${productId}`, { signal: controller.signal });
+    clearTimeout(timeoutId);
+    
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.payload) {
+        return {
+          title: data.payload.title || '',
+          image: data.payload.photos && data.payload.photos[0] 
+            ? `https://images.uzum.uz/${data.payload.photos[0].key}/t_product_240_low.jpg` 
+            : null
+        };
+      }
+    }
+  } catch (e) {
+    console.warn('Direct fetch to Uzum API failed or blocked (CORS/Captcha):', e);
+  }
+
+  // 2. Резервный запрос через прокси Google Apps Script
+  try {
+    const res = await apiGet({ action: 'getProductInfo', productId: productId });
+    if (res.success) {
+      return {
+        title: res.title || '',
+        image: res.photoKey ? `https://images.uzum.uz/${res.photoKey}/t_product_240_low.jpg` : null
+      };
+    }
+  } catch (e) {
+    console.error('Apps Script proxy fetch failed:', e);
+  }
+
+  // Заглушка, если ничего не сработало
+  return {
+    title: `Товар ID ${productId}`,
+    image: null
+  };
 }
 
 // Отправка результата поиска на сервер

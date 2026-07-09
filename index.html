@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   
   <!-- Стили -->
-  <link rel="stylesheet" href="index.css">
+  <link rel="stylesheet" href="index.css?v=11.0.0">
 
   <!-- PWA Поддержка -->
   <link rel="manifest" href="manifest.json">
@@ -173,6 +173,18 @@
         <div class="task-cell-label">Ячейка для поиска</div>
         <div class="task-cell" id="taskCell">M1.83.52.5.1</div>
 
+        <!-- Блок товара (фото и описание) -->
+        <a href="#" target="_blank" id="productLink" class="product-info-block" style="display: none;">
+          <div class="product-img-container">
+            <img id="productImage" src="" alt="Товар">
+            <div id="productImagePlaceholder" class="product-img-placeholder">📷</div>
+          </div>
+          <div class="product-desc-container">
+            <div class="product-title" id="productTitle">Загрузка информации о товаре...</div>
+            <div class="product-link-badge">Открыть на Uzum.uz ↗</div>
+          </div>
+        </a>
+
         <div class="task-details">
           <div class="task-info-block" style="grid-column: span 2;">
             <div class="info-title">Штрихкод (Шк)</div>
@@ -252,6 +264,6 @@
   </div>
 
   <!-- Логика работы приложения -->
-  <script src="app.js"></script>
+  <script src="app.js?v=11.0.0"></script>
 </body>
 </html>
