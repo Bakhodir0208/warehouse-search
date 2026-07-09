@@ -245,7 +245,7 @@ function handleGetTasks() {
     }
   }
   
-  return jsonResponse({ success: true, tasks: tasks, locks: locksList });
+  return jsonResponse({ success: true, tasks: tasks, locks: locksList, debugHeaders: headers, debugColMap: colMap });
 }
 
 /**
