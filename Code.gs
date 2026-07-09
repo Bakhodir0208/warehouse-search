@@ -529,3 +529,7 @@ function handleGetProductInfo(productId) {
     return jsonResponse({ success: false, error: err.toString() });
   }
 }
+
+function forceAuthorize() {
+  UrlFetchApp.fetch("https://api.uzum.uz/api/v2/product/1079386");
+}
