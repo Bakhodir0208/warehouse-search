@@ -507,7 +507,7 @@ function handleGetProductInfo(productId) {
     var response = UrlFetchApp.fetch(url, {
       muteHttpExceptions: true,
       headers: {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, y Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
         "Accept": "application/json"
       }
     });
