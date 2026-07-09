@@ -79,9 +79,7 @@ const ui = {
     btnSkip: document.getElementById('btnSkipTask'),
     btnExit: document.getElementById('btnExitTask'),
     btnWmsInfo: document.getElementById('btnWmsInfo'),
-    productLink: document.getElementById('productLink'),
-    productImage: document.getElementById('productImage'),
-    productTitle: document.getElementById('productTitle')
+    productLink: document.getElementById('productLink')
   }
 };
 
@@ -731,12 +729,11 @@ function renderCurrentTask() {
   ui.task.targetQty.textContent = `${task.targetQty} шт.`;
   ui.task.cellsCount.textContent = task.totalCellsCount;
   
-  // Отображение информации о товаре
+  // Отображение кнопки перехода на Uzum
   if (ui.task.productLink) {
     if (task.productId) {
       ui.task.productLink.href = `https://uzum.uz/ru/product/${task.productId}`;
       ui.task.productLink.style.display = 'flex';
-      loadProductInfo(task.productId);
     } else {
       ui.task.productLink.style.display = 'none';
       ui.task.productLink.href = '#';
@@ -757,106 +754,7 @@ function renderCurrentTask() {
   ui.task.qtyVal.textContent = task.targetQty;
 }
 
-// Загрузка информации о товаре в UI
-async function loadProductInfo(productId) {
-  if (ui.task.productImage) {
-    ui.task.productImage.src = '';
-    ui.task.productImage.classList.remove('loaded');
-  }
-  if (ui.task.productTitle) {
-    ui.task.productTitle.textContent = 'Загрузка информации о товаре...';
-  }
-  
-  try {
-    const info = await fetchProductInfo(productId);
-    if (info) {
-      if (ui.task.productTitle) {
-        ui.task.productTitle.textContent = info.title || `Товар ID ${productId}`;
-      }
-      if (info.image && ui.task.productImage) {
-        ui.task.productImage.src = info.image;
-        ui.task.productImage.onload = () => {
-          ui.task.productImage.classList.add('loaded');
-        };
-      }
-    }
-  } catch (err) {
-    console.error('Error loading product info into UI:', err);
-    if (ui.task.productTitle) {
-      ui.task.productTitle.textContent = `Товар ID ${productId} (нажмите, чтобы открыть)`;
-    }
-  }
-}
 
-// Получение информации о товаре (фото и описание) с поддержкой Демо-режима, прямого запроса и Apps Script прокси
-async function fetchProductInfo(productId) {
-  if (state.isDemoMode) {
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const mockProducts = {
-      '364004': {
-        title: 'Женские туфли на высоком каблуке COMFORT SHOES',
-        image: 'https://images.uzum.uz/d1vl10r4eu2vdgd75pig/t_product_240_low.jpg'
-      },
-      '435478': {
-        title: 'Женские легкие дышащие кроссовки белого цвета',
-        image: 'https://images.uzum.uz/d29qu57iub3csu9vcr6g/t_product_240_low.jpg'
-      },
-      '472922': {
-        title: 'Чехол силиконовый прозрачный для смартфона',
-        image: 'https://images.uzum.uz/d29rgr34eu2ok713e2ig/t_product_240_low.jpg'
-      },
-      '832407': {
-        title: 'Женские замшевые туфли с бантом',
-        image: 'https://images.uzum.uz/d1vl0rt2llnbjcofb7ng/t_product_240_low.jpg'
-      }
-    };
-    return mockProducts[productId] || {
-      title: `Товар ID ${productId}`,
-      image: null
-    };
-  }
-
-  // 1. Попытка прямого запроса к API Uzum
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3с таймаут
-    const res = await fetch(`https://api.uzum.uz/api/v2/product/${productId}`, { signal: controller.signal });
-    clearTimeout(timeoutId);
-    
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.payload) {
-        return {
-          title: data.payload.title || '',
-          image: data.payload.photos && data.payload.photos[0] 
-            ? `https://images.uzum.uz/${data.payload.photos[0].key}/t_product_240_low.jpg` 
-            : null
-        };
-      }
-    }
-  } catch (e) {
-    console.warn('Direct fetch to Uzum API failed or blocked (CORS/Captcha):', e);
-  }
-
-  // 2. Резервный запрос через прокси Google Apps Script
-  try {
-    const res = await apiGet({ action: 'getProductInfo', productId: productId });
-    if (res.success) {
-      return {
-        title: res.title || '',
-        image: res.photoKey ? `https://images.uzum.uz/${res.photoKey}/t_product_240_low.jpg` : null
-      };
-    }
-  } catch (e) {
-    console.error('Apps Script proxy fetch failed:', e);
-  }
-
-  // Заглушка, если ничего не сработало
-  return {
-    title: `Товар ID ${productId}`,
-    image: null
-  };
-}
 
 // Отправка результата поиска на сервер
 async function submitTaskResult(qty) {
