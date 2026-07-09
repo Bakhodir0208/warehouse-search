@@ -378,7 +378,7 @@ function mapHeaders(headers) {
       colMap.foundQty = i;
     } else if (h === "сотрудник аналитики" || h === "сотрудник" || h.indexOf("сотрудник") === 0) {
       colMap.employee = i;
-    } else if (h === "product_id" || h === "productid" || h === "id товара" || h === "айди товара") {
+    } else if (h === "product_id" || h === "productid" || h === "id товара" || h === "айди товара" || h === "prudct_id" || h === "prudctid" || h.indexOf("product") !== -1 || h.indexOf("prudct") !== -1) {
       colMap.productId = i;
     }
   }
